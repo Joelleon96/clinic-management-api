@@ -2,6 +2,7 @@
 using Clinic.Application.Interfaces;
 using Clinic.Domain.Entities;
 using Clinic.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,5 +35,19 @@ namespace Clinic.Infrastructure.Services
 
 			return patient.Id;
 		}
+
+		public async Task<IEnumerable<PatientDto>> GetAllAsync()
+		{
+			return await _context.Patients
+				.Select(p => new PatientDto
+				{
+					Id = p.Id,
+					FirstName = p.FirstName,
+					LastName = p.LastName,
+					DateOfBirth = p.DateOfBirth
+				})
+				.ToListAsync();
+		}
+
 	}
 }

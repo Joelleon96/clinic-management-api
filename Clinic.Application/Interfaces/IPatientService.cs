@@ -10,5 +10,8 @@ namespace Clinic.Application.Interfaces
 	public interface IPatientService
 	{
 		Task<int> CreateAsync(CreatePatientDto dto);
+
+		Task<IEnumerable<PatientDto>> GetAllAsync();
+
 	}
 }
