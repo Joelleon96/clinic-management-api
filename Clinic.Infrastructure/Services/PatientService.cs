@@ -49,5 +49,36 @@ namespace Clinic.Infrastructure.Services
 				.ToListAsync();
 		}
 
+		public async Task<PatientDto?> GetByIdAsync(int id)
+		{
+			var patient = await _context.Patients
+				.Where(p => p.Id == id)
+				.Select(p => new PatientDto
+				{
+					Id = p.Id,
+					FirstName = p.FirstName,
+					LastName = p.LastName,
+					DateOfBirth = p.DateOfBirth
+				})
+				.FirstOrDefaultAsync();
+
+			return patient;
+		}
+		public async Task<bool> UpdateAsync(int id, UpdatePatientDto dto)
+		{
+			var patient = await _context.Patients
+				.FirstOrDefaultAsync(p => p.Id == id);
+
+			if (patient == null)
+				return false;
+
+			patient.FirstName = dto.FirstName;
+			patient.LastName = dto.LastName;
+			patient.DateOfBirth = dto.DateOfBirth;
+
+			await _context.SaveChangesAsync();
+			return true;
+		}
+
 	}
 }

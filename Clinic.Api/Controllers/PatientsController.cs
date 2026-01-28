@@ -33,6 +33,34 @@ namespace Clinic.Api.Controllers
 			return Ok(patients);
 		}
 
+		[HttpGet("{id:int}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> GetById(int id)
+		{
+			var patient = await _patientService.GetByIdAsync(id);
 
+			if (patient == null)
+				return NotFound();
+
+			return Ok(patient);
+		}
+
+		[HttpPut("{id:int}")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> Update(int id, [FromBody] UpdatePatientDto dto)
+		{
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState);
+
+			var updated = await _patientService.UpdateAsync(id, dto);
+
+			if (!updated)
+				return NotFound();
+
+			return NoContent();
+		}
 	}
 }
