@@ -14,6 +14,7 @@ namespace Clinic.Application.Interfaces
 		Task<IEnumerable<PatientDto>> GetAllAsync();
 		Task<PatientDto?> GetByIdAsync(int id);
 		Task<bool> UpdateAsync(int id, UpdatePatientDto dto);
+		Task<bool> DeleteAsync(int id);
 
 
 	}

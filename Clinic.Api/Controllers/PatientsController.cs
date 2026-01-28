@@ -62,5 +62,18 @@ namespace Clinic.Api.Controllers
 
 			return NoContent();
 		}
+
+		[HttpDelete("{id:int}")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> Delete(int id)
+		{
+			var deleted = await _patientService.DeleteAsync(id);
+
+			if (!deleted)
+				return NotFound();
+
+			return NoContent();
+		}
 	}
 }

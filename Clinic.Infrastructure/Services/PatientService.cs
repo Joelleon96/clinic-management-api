@@ -80,5 +80,19 @@ namespace Clinic.Infrastructure.Services
 			return true;
 		}
 
+		public async Task<bool> DeleteAsync(int id)
+		{
+			var patient = await _context.Patients
+				.FirstOrDefaultAsync(p => p.Id == id);
+
+			if (patient == null)
+				return false;
+
+			_context.Patients.Remove(patient);
+			await _context.SaveChangesAsync();
+
+			return true;
+		}
+
 	}
 }
