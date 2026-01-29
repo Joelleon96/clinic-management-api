@@ -1,3 +1,4 @@
+using Clinic.Api.Middleware;
 using Clinic.Application.Interfaces;
 using Clinic.Infrastructure.Data;
 using Clinic.Infrastructure.Services;
@@ -17,6 +18,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();

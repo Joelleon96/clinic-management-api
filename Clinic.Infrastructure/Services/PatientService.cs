@@ -38,6 +38,7 @@ namespace Clinic.Infrastructure.Services
 
 		public async Task<IEnumerable<PatientDto>> GetAllAsync()
 		{
+			//throw new Exception("Global error handling test");
 			return await _context.Patients
 				.Select(p => new PatientDto
 				{
