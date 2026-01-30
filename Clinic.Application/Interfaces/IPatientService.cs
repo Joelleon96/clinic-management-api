@@ -10,12 +10,8 @@ namespace Clinic.Application.Interfaces
 	public interface IPatientService
 	{
 		Task<int> CreateAsync(CreatePatientDto dto);
-
-		Task<IEnumerable<PatientDto>> GetAllAsync();
 		Task<PatientDto?> GetByIdAsync(int id);
-		Task<bool> UpdateAsync(int id, UpdatePatientDto dto);
-		Task<bool> DeleteAsync(int id);
-
-
+		Task UpdateAsync(int id, UpdatePatientDto dto);
+		Task DeleteAsync(int id);
 	}
 }

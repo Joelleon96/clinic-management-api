@@ -1,34 +1,28 @@
-﻿using Clinic.Application.DTOs.Patients;
+﻿using AutoMapper;
+using Clinic.Application.DTOs.Patients;
 using Clinic.Application.Interfaces;
 using Clinic.Domain.Entities;
 using Clinic.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Clinic.Infrastructure.Services
 {
 	public class PatientService : IPatientService
 	{
 		private readonly ClinicDbContext _context;
+		private readonly IMapper _mapper;
 
-		public PatientService(ClinicDbContext context)
+		public PatientService(ClinicDbContext context, IMapper mapper)
 		{
 			_context = context;
+			_mapper = mapper;
 		}
 
 		public async Task<int> CreateAsync(CreatePatientDto dto)
 		{
-			var patient = new Patient
-			{
-				FirstName = dto.FirstName,
-				LastName = dto.LastName,
-				DateOfBirth = dto.DateOfBirth,
-				CreatedAt = DateTime.UtcNow
-			};
+			var patient = _mapper.Map<Patient>(dto);
+
+			patient.CreatedAt = DateTime.UtcNow;
 
 			_context.Patients.Add(patient);
 			await _context.SaveChangesAsync();
@@ -36,64 +30,37 @@ namespace Clinic.Infrastructure.Services
 			return patient.Id;
 		}
 
-		public async Task<IEnumerable<PatientDto>> GetAllAsync()
-		{
-			//throw new Exception("Global error handling test");
-			return await _context.Patients
-				.Select(p => new PatientDto
-				{
-					Id = p.Id,
-					FirstName = p.FirstName,
-					LastName = p.LastName,
-					DateOfBirth = p.DateOfBirth
-				})
-				.ToListAsync();
-		}
-
 		public async Task<PatientDto?> GetByIdAsync(int id)
 		{
-			var patient = await _context.Patients
-				.Where(p => p.Id == id)
-				.Select(p => new PatientDto
-				{
-					Id = p.Id,
-					FirstName = p.FirstName,
-					LastName = p.LastName,
-					DateOfBirth = p.DateOfBirth
-				})
-				.FirstOrDefaultAsync();
-
-			return patient;
-		}
-		public async Task<bool> UpdateAsync(int id, UpdatePatientDto dto)
-		{
-			var patient = await _context.Patients
-				.FirstOrDefaultAsync(p => p.Id == id);
+			var patient = await _context.Patients.FindAsync(id);
 
 			if (patient == null)
-				return false;
+				return null;
 
-			patient.FirstName = dto.FirstName;
-			patient.LastName = dto.LastName;
-			patient.DateOfBirth = dto.DateOfBirth;
+			return _mapper.Map<PatientDto>(patient);
+		}
+
+		public async Task UpdateAsync(int id, UpdatePatientDto dto)
+		{
+			var patient = await _context.Patients.FindAsync(id);
+
+			if (patient == null)
+				throw new Exception("Patient not found");
+
+			_mapper.Map(dto, patient);
 
 			await _context.SaveChangesAsync();
-			return true;
 		}
 
-		public async Task<bool> DeleteAsync(int id)
+		public async Task DeleteAsync(int id)
 		{
-			var patient = await _context.Patients
-				.FirstOrDefaultAsync(p => p.Id == id);
+			var patient = await _context.Patients.FindAsync(id);
 
 			if (patient == null)
-				return false;
+				throw new Exception("Patient not found");
 
 			_context.Patients.Remove(patient);
 			await _context.SaveChangesAsync();
-
-			return true;
 		}
-
 	}
 }
