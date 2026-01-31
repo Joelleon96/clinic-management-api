@@ -1,15 +1,19 @@
 using Clinic.Api.Middleware;
 using Clinic.Application.Interfaces;
 using Clinic.Application.Mappings;
+using Clinic.Application.Validators.Patients;
 using Clinic.Infrastructure.Data;
 using Clinic.Infrastructure.Services;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Controllers
 builder.Services.AddControllers();
-
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreatePatientValidator>();
 builder.Services.AddDbContext<ClinicDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
