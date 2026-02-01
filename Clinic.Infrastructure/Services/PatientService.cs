@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Clinic.Application.DTOs.Common.Clinic.Application.DTOs.Common;
 using Clinic.Application.DTOs.Patients;
 using Clinic.Application.Interfaces;
 using Clinic.Domain.Entities;
@@ -9,6 +10,25 @@ namespace Clinic.Infrastructure.Services
 {
 	public class PatientService : IPatientService
 	{
+		public async Task<PagedResult<PatientDto>> GetAllAsync(PaginationQuery query)
+		{
+			var baseQuery = _context.Patients.AsNoTracking();
+
+			var totalCount = await baseQuery.CountAsync();
+
+			var patients = await baseQuery
+				.Skip((query.PageNumber - 1) * query.PageSize)
+				.Take(query.PageSize)
+				.ToListAsync();
+
+			return new PagedResult<PatientDto>
+			{
+				Items = _mapper.Map<IEnumerable<PatientDto>>(patients),
+				TotalCount = totalCount,
+				PageNumber = query.PageNumber,
+				PageSize = query.PageSize
+			};
+		}
 		private readonly ClinicDbContext _context;
 		private readonly IMapper _mapper;
 
@@ -35,7 +55,7 @@ namespace Clinic.Infrastructure.Services
 			var patient = await _context.Patients.FindAsync(id);
 
 			if (patient == null)
-				return null;
+				throw new Exception("Patient not found");
 
 			return _mapper.Map<PatientDto>(patient);
 		}

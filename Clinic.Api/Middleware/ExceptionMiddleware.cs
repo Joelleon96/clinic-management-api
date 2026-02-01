@@ -1,5 +1,4 @@
-﻿using Clinic.Application.DTOs.Common;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 
 namespace Clinic.Api.Middleware
@@ -23,19 +22,20 @@ namespace Clinic.Api.Middleware
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Unhandled exception occurred");
+				_logger.LogError(ex, ex.Message);
 
 				context.Response.ContentType = "application/json";
 				context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-				var response = new ErrorResponse
+				var response = new
 				{
-					StatusCode = context.Response.StatusCode,
-					Message = "An unexpected error occurred"
+					statusCode = context.Response.StatusCode,
+					message = "An unexpected error occurred"
 				};
 
-				var json = JsonSerializer.Serialize(response);
-				await context.Response.WriteAsync(json);
+				await context.Response.WriteAsync(
+					JsonSerializer.Serialize(response)
+				);
 			}
 		}
 	}

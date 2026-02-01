@@ -1,4 +1,6 @@
-﻿using Clinic.Application.DTOs.Patients;
+﻿using Clinic.Application.DTOs.Common;
+using Clinic.Application.DTOs.Common.Clinic.Application.DTOs.Common;
+using Clinic.Application.DTOs.Patients;
 using Clinic.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +19,12 @@ namespace Clinic.Api.Controllers
 			_patientService = patientService;
 		}
 
+		[HttpGet]
+		public async Task<IActionResult> GetAll([FromQuery] PaginationQuery query)
+		{
+			var result = await _patientService.GetAllAsync(query);
+			return Ok(result);
+		}
 
 		[HttpPost]
 		public async Task<IActionResult> Create(CreatePatientDto dto)
