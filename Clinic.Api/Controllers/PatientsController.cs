@@ -35,7 +35,7 @@ namespace Clinic.Api.Controllers
 			return CreatedAtAction(nameof(GetById), new { id }, null);
 		}
 
-
+		[Authorize]
 		[HttpGet("{id}")]
 		public async Task<IActionResult> GetById(int id)
 		{
