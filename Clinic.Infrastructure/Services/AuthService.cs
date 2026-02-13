@@ -4,6 +4,7 @@ using Clinic.Domain.Entities;
 using Clinic.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,13 +14,15 @@ namespace Clinic.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
+	private readonly ILogger<AuthService> _logger;
 	private readonly IConfiguration _config;
 	private readonly ClinicDbContext _context;
 
-	public AuthService(IConfiguration config, ClinicDbContext context)
+	public AuthService(IConfiguration config, ClinicDbContext context, ILogger<AuthService> logger)
 	{
 		_config = config;
 		_context = context;
+		_logger = logger;
 	}
 
 	public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
@@ -29,7 +32,10 @@ public class AuthService : IAuthService
 			.FirstOrDefaultAsync(u => u.Email == request.Email);
 
 		if (user == null)
+		{
+			_logger.LogWarning("Login failed: User not found for email {Email}", request.Email);
 			throw new UnauthorizedAccessException("Invalid credentials");
+		}
 
 		// 2️⃣ Verify password using BCrypt
 		bool isPasswordValid = BCrypt.Net.BCrypt.Verify(
@@ -38,7 +44,10 @@ public class AuthService : IAuthService
 		);
 
 		if (!isPasswordValid)
+		{
+			_logger.LogWarning("Login failed: Invalid password for email {Email}", request.Email);
 			throw new UnauthorizedAccessException("Invalid credentials");
+		}
 
 		// 3️⃣ Create claims
 		var claims = new[]
