@@ -3,13 +3,17 @@ using Clinic.Application.Interfaces;
 using Clinic.Application.Mappings;
 using Clinic.Application.Validators.Patients;
 using Clinic.Infrastructure.Data;
+using Clinic.Infrastructure.Identity;
 using Clinic.Infrastructure.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +22,19 @@ builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreatePatientValidator>();
 builder.Services.AddDbContext<ClinicDbContext>(options =>
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+	options.UseSqlServer(
+		builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services
+	.AddIdentity<ApplicationUser, IdentityRole>(options =>
+	{
+		options.Password.RequireDigit = true;
+		options.Password.RequiredLength = 6;
+		options.Password.RequireUppercase = false;
+		options.Password.RequireNonAlphanumeric = false;
+	})
+	.AddEntityFrameworkStores<ClinicDbContext>()
+	.AddDefaultTokenProviders();
+
 
 builder.Services.AddScoped<IPatientService, PatientService>();
 //Swagger
@@ -88,10 +104,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
-//Middleware
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
@@ -99,7 +112,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseCors("AllowFrontend");
+
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();

@@ -1,31 +1,33 @@
 ﻿using Clinic.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
+using Clinic.Infrastructure.Identity;
+
 
 namespace Clinic.Infrastructure.Data
 {
-	public class ClinicDbContext : DbContext
+	public class ClinicDbContext
+		: IdentityDbContext<ApplicationUser, IdentityRole, string>
 	{
 		public ClinicDbContext(DbContextOptions<ClinicDbContext> options)
 			: base(options)
 		{
 		}
 
-		public DbSet<Patient> Patients => Set<Patient>();
-		public DbSet<User> Users { get; set; }
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			base.OnModelCreating(modelBuilder);
+		public DbSet<ClinicEntity> Clinics { get; set; }
+		public DbSet<Patient> Patients { get; set; }
 
-			modelBuilder.Entity<User>().HasData(
-				new User
-				{
-					Id = 1,
-					Email = "admin@clinic.com",
-					PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-					Role = "Admin"
-				}
-			);
+		protected override void OnModelCreating(ModelBuilder builder)
+		{
+			base.OnModelCreating(builder);
+
+			// Example: Patient → Clinic relationship
+			builder.Entity<Patient>()
+				.HasOne(p => p.ClinicEntity)
+				.WithMany()
+				.HasForeignKey(p => p.ClinicEntityId)
+				.OnDelete(DeleteBehavior.Restrict);
 		}
 	}
 }
