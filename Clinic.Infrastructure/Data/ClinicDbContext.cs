@@ -15,7 +15,7 @@ namespace Clinic.Infrastructure.Data
 		{
 		}
 
-		public DbSet<ClinicEntity> Clinics { get; set; }
+		public DbSet<ClinicEntity> Clinics => Set<ClinicEntity>();
 		public DbSet<Patient> Patients { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)

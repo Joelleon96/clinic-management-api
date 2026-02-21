@@ -4,7 +4,6 @@ using Clinic.Domain.Entities;
 using Clinic.Infrastructure.Data;
 using Clinic.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -24,17 +23,19 @@ public class AuthService : IAuthService
 
 	public AuthService(
 	IConfiguration config,
+	ClinicDbContext context,
 	UserManager<ApplicationUser> userManager,
 	ILogger<AuthService> logger)
 	{
 		_config = config;
+		_context = context;
 		_userManager = userManager;
 		_logger = logger;
 	}
 
 	public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
 	{
-		// 1️⃣ Find user using Identity
+		
 		var user = await _userManager.FindByEmailAsync(request.Email);
 
 		if (user == null)
@@ -43,7 +44,7 @@ public class AuthService : IAuthService
 			throw new UnauthorizedAccessException("Invalid credentials");
 		}
 
-		// 2️⃣ Verify password using Identity
+		
 		var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
 
 		if (!isPasswordValid)
@@ -52,10 +53,10 @@ public class AuthService : IAuthService
 			throw new UnauthorizedAccessException("Invalid credentials");
 		}
 
-		// 3️⃣ Get roles
+		
 		var roles = await _userManager.GetRolesAsync(user);
 
-		// 4️⃣ Create claims
+		
 		var claims = new List<Claim>
 	{
 		new Claim(ClaimTypes.Email, user.Email!),
@@ -68,14 +69,14 @@ public class AuthService : IAuthService
 			claims.Add(new Claim(ClaimTypes.Role, role));
 		}
 
-		// 5️⃣ Generate signing key
+		
 		var key = new SymmetricSecurityKey(
 			Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
 		);
 
 		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-		// 6️⃣ Create token
+		
 		var token = new JwtSecurityToken(
 			issuer: _config["Jwt:Issuer"],
 			audience: _config["Jwt:Audience"],
@@ -88,5 +89,38 @@ public class AuthService : IAuthService
 		{
 			Token = new JwtSecurityTokenHandler().WriteToken(token)
 		};
+	}
+
+	public async Task<string> RegisterAsync(RegisterRequestDto request)
+	{
+		
+		var clinic = new ClinicEntity
+		{
+			Name = request.ClinicName,
+			CreatedAt = DateTime.UtcNow
+		};
+
+		_context.Clinics.Add(clinic);
+		await _context.SaveChangesAsync();
+
+		
+		var user = new ApplicationUser
+		{
+			UserName = request.Email,
+			Email = request.Email,
+			ClinicEntityId = clinic.Id
+		};
+
+		var result = await _userManager.CreateAsync(user, request.Password);
+
+		if (!result.Succeeded)
+		{
+			throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+		}
+
+		
+		await _userManager.AddToRoleAsync(user, "Admin");
+
+		return "User registered successfully";
 	}
 }
