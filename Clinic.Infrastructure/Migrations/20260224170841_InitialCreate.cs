@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Clinic.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddInitialIdentity : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -105,8 +105,7 @@ namespace Clinic.Infrastructure.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ClinicEntityId1 = table.Column<int>(type: "int", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -117,11 +116,6 @@ namespace Clinic.Infrastructure.Migrations
                         principalTable: "Clinics",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Patients_Clinics_ClinicEntityId1",
-                        column: x => x.ClinicEntityId1,
-                        principalTable: "Clinics",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -257,11 +251,6 @@ namespace Clinic.Infrastructure.Migrations
                 name: "IX_Patients_ClinicEntityId",
                 table: "Patients",
                 column: "ClinicEntityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Patients_ClinicEntityId1",
-                table: "Patients",
-                column: "ClinicEntityId1");
         }
 
         /// <inheritdoc />

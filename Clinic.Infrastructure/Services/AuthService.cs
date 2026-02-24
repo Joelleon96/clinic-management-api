@@ -61,7 +61,7 @@ public class AuthService : IAuthService
 	{
 		new Claim(ClaimTypes.Email, user.Email!),
 		new Claim(ClaimTypes.NameIdentifier, user.Id),
-		new Claim("ClinicEntityId", user.ClinicEntityId.ToString())
+		new Claim("clinicId", user.ClinicEntityId.ToString())
 	};
 
 		foreach (var role in roles)
@@ -93,34 +93,43 @@ public class AuthService : IAuthService
 
 	public async Task<string> RegisterAsync(RegisterRequestDto request)
 	{
-		
-		var clinic = new ClinicEntity
+		using var transaction = await _context.Database.BeginTransactionAsync();
+
+		try
 		{
-			Name = request.ClinicName,
-			CreatedAt = DateTime.UtcNow
-		};
+			var clinic = new ClinicEntity
+			{
+				Name = request.ClinicName,
+				CreatedAt = DateTime.UtcNow
+			};
 
-		_context.Clinics.Add(clinic);
-		await _context.SaveChangesAsync();
+			_context.Clinics.Add(clinic);
+			await _context.SaveChangesAsync();
 
-		
-		var user = new ApplicationUser
-		{
-			UserName = request.Email,
-			Email = request.Email,
-			ClinicEntityId = clinic.Id
-		};
+			var user = new ApplicationUser
+			{
+				UserName = request.Email,
+				Email = request.Email,
+				ClinicEntityId = clinic.Id
+			};
 
-		var result = await _userManager.CreateAsync(user, request.Password);
+			var result = await _userManager.CreateAsync(user, request.Password);
 
-		if (!result.Succeeded)
-		{
-			throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+			if (!result.Succeeded)
+			{
+				throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+			}
+
+			await _userManager.AddToRoleAsync(user, "Admin");
+
+			await transaction.CommitAsync();
+
+			return "User registered successfully";
 		}
-
-		
-		await _userManager.AddToRoleAsync(user, "Admin");
-
-		return "User registered successfully";
+		catch
+		{
+			await transaction.RollbackAsync();
+			throw;
+		}
 	}
 }

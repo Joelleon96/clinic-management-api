@@ -65,9 +65,6 @@ namespace Clinic.Infrastructure.Migrations
                     b.Property<int>("ClinicEntityId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ClinicEntityId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -85,8 +82,6 @@ namespace Clinic.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClinicEntityId");
-
-                    b.HasIndex("ClinicEntityId1");
 
                     b.ToTable("Patients");
                 });
@@ -297,14 +292,10 @@ namespace Clinic.Infrastructure.Migrations
             modelBuilder.Entity("Clinic.Domain.Entities.Patient", b =>
                 {
                     b.HasOne("Clinic.Domain.Entities.ClinicEntity", "ClinicEntity")
-                        .WithMany()
+                        .WithMany("Patients")
                         .HasForeignKey("ClinicEntityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Clinic.Domain.Entities.ClinicEntity", null)
-                        .WithMany("Patients")
-                        .HasForeignKey("ClinicEntityId1");
 
                     b.Navigation("ClinicEntity");
                 });

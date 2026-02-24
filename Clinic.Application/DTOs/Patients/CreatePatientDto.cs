@@ -8,6 +8,7 @@ namespace Clinic.Application.DTOs.Patients
 {
 	public class CreatePatientDto
 	{
+		public int ClinicEntityId { get; set; }
 		public string FirstName { get; set; } = string.Empty;
 		public string LastName { get; set; } = string.Empty;
 		public DateTime DateOfBirth { get; set; }

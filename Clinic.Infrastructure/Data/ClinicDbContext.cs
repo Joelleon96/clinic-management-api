@@ -25,7 +25,7 @@ namespace Clinic.Infrastructure.Data
 			// Example: Patient → Clinic relationship
 			builder.Entity<Patient>()
 				.HasOne(p => p.ClinicEntity)
-				.WithMany()
+				.WithMany(c => c.Patients)
 				.HasForeignKey(p => p.ClinicEntityId)
 				.OnDelete(DeleteBehavior.Restrict);
 		}
