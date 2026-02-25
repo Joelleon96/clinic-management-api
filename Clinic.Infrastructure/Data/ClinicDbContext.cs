@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Clinic.Infrastructure.Identity;
+using Clinic.Application.Interfaces;
 
 
 namespace Clinic.Infrastructure.Data
@@ -10,9 +11,13 @@ namespace Clinic.Infrastructure.Data
 	public class ClinicDbContext
 		: IdentityDbContext<ApplicationUser, IdentityRole, string>
 	{
-		public ClinicDbContext(DbContextOptions<ClinicDbContext> options)
-			: base(options)
+		private readonly ICurrentUserService _currentUser;
+		public ClinicDbContext(
+		DbContextOptions<ClinicDbContext> options,
+		ICurrentUserService currentUser)
+		: base(options)
 		{
+			_currentUser = currentUser;
 		}
 
 		public DbSet<ClinicEntity> Clinics => Set<ClinicEntity>();
@@ -28,6 +33,9 @@ namespace Clinic.Infrastructure.Data
 				.WithMany(c => c.Patients)
 				.HasForeignKey(p => p.ClinicEntityId)
 				.OnDelete(DeleteBehavior.Restrict);
+
+			builder.Entity<Patient>()
+				.HasQueryFilter(p => p.ClinicEntityId == _currentUser.ClinicId);
 		}
 	}
 }

@@ -31,11 +31,16 @@ namespace Clinic.Infrastructure.Services
 		}
 		private readonly ClinicDbContext _context;
 		private readonly IMapper _mapper;
+		private readonly ICurrentUserService _currentUser;
 
-		public PatientService(ClinicDbContext context, IMapper mapper)
+		public PatientService(
+			ClinicDbContext context,
+			IMapper mapper,
+			ICurrentUserService currentUser)
 		{
 			_context = context;
 			_mapper = mapper;
+			_currentUser = currentUser;
 		}
 
 		public async Task<int> CreateAsync(CreatePatientDto dto)
@@ -43,6 +48,9 @@ namespace Clinic.Infrastructure.Services
 			var patient = _mapper.Map<Patient>(dto);
 
 			patient.CreatedAt = DateTime.UtcNow;
+
+			
+			patient.ClinicEntityId = _currentUser.ClinicId;
 
 			_context.Patients.Add(patient);
 			await _context.SaveChangesAsync();
