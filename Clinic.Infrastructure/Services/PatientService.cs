@@ -87,7 +87,7 @@ namespace Clinic.Infrastructure.Services
 			if (patient == null)
 				throw new Exception("Patient not found");
 
-			_context.Patients.Remove(patient);
+			patient.IsDeleted = true;
 			await _context.SaveChangesAsync();
 		}
 	}

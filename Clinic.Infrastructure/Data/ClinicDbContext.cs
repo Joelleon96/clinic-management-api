@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Clinic.Infrastructure.Identity;
 using Clinic.Application.Interfaces;
+using Clinic.Domain.Common;
 
 
 namespace Clinic.Infrastructure.Data
@@ -20,6 +21,29 @@ namespace Clinic.Infrastructure.Data
 			_currentUser = currentUser;
 		}
 
+		public override async Task<int> SaveChangesAsync(
+		CancellationToken cancellationToken = default)
+		{
+			var entries = ChangeTracker
+				.Entries<BaseAuditableEntity>();
+
+			foreach (var entry in entries)
+			{
+				if (entry.State == EntityState.Added)
+				{
+					entry.Entity.CreatedAt = DateTime.UtcNow;
+					entry.Entity.CreatedByUserId = _currentUser.UserId;
+				}
+
+				if (entry.State == EntityState.Modified)
+				{
+					entry.Entity.UpdatedAt = DateTime.UtcNow;
+					entry.Entity.UpdatedByUserId = _currentUser.UserId;
+				}
+			}
+
+			return await base.SaveChangesAsync(cancellationToken);
+		}
 		public DbSet<ClinicEntity> Clinics => Set<ClinicEntity>();
 		public DbSet<Patient> Patients { get; set; }
 
@@ -29,10 +53,9 @@ namespace Clinic.Infrastructure.Data
 
 			// Example: Patient → Clinic relationship
 			builder.Entity<Patient>()
-				.HasOne(p => p.ClinicEntity)
-				.WithMany(c => c.Patients)
-				.HasForeignKey(p => p.ClinicEntityId)
-				.OnDelete(DeleteBehavior.Restrict);
+			.HasQueryFilter(p =>
+			p.ClinicEntityId == _currentUser.ClinicId &&
+			!p.IsDeleted);
 
 			builder.Entity<Patient>()
 				.HasQueryFilter(p => p.ClinicEntityId == _currentUser.ClinicId);
